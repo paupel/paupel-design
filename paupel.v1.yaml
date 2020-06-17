@@ -1,0 +1,338 @@
+openapi: 3.0.0
+info:
+  title: paupel
+  version: '1.0'
+  description: "Paupel, gestion d'utilisateur BDE, gestion de portefeuille, gestion de soirée"
+  contact:
+    name: Paul Planchon
+    url: 'https://planchon.io/'
+    email: paul@planchon.io
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  '/user/{uuid}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: uuid
+        in: path
+        required: true
+        description: paupel user id
+    get:
+      summary: "Infos sur l'user"
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      operationId: get-user-uuid
+      description: "retourne les infos de l'user"
+      security:
+        - paupel-api: []
+    delete:
+      summary: Supprime un user
+      operationId: delete-user-uuid
+      responses:
+        '200':
+          description: OK
+      description: "suprime l'user"
+      security:
+        - paupel-admin: []
+    put:
+      summary: Mettre a jour un user
+      operationId: put-user-uuid
+      responses:
+        '200':
+          description: OK
+      security:
+        - paupel-api: []
+      description: "met a jour l'user"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+  /user/soiree:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  soirees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Soiree'
+      operationId: get-user-soiree
+      description: "retourne la liste des soirée auquel l'user a été"
+    parameters: []
+    post:
+      summary: ''
+      operationId: post-user-uuid-soiree
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: "la soirée n'existe pas"
+      description: |-
+        ajouter une soiree a un user
+        quand un user reserve sa place a la soirée, la soirée lui est automatiquement ajouté
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                soiree_id:
+                  type: integer
+        description: le body doit avoir le soiree_id de la soiree
+  '/user/{uuid}/soiree/{usid}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: uuid
+        in: path
+        required: true
+        description: paupel user id
+      - schema:
+          type: string
+        name: usid
+        in: path
+        required: true
+        description: unique soiree id
+    get:
+      summary: Une soiree
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  soiree:
+                    $ref: '#/components/schemas/Soiree'
+      operationId: get-user-uuid-soiree-soiree_id
+      description: "retourne la soiree de l'user"
+      security:
+        - paupel-api: []
+        - paupel-api: []
+    delete:
+      summary: Supprime une soiree
+      operationId: delete-user-uuid-soiree-soiree_id
+      responses:
+        '200':
+          description: OK
+      description: "supprime la soiree de l'user, il n'est pas venu ?"
+      security:
+        - paupel-admin: []
+  /blog:
+    get:
+      summary: Tous les billets
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  billets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Blog'
+      operationId: get-blog
+      description: retourne tous les billets du blog
+    post:
+      summary: Ajoute un billet
+      operationId: post-blog
+      responses:
+        '200':
+          description: OK
+      security:
+        - paupel-admin: []
+  '/blog/{ubid}':
+    parameters:
+      - schema:
+          type: string
+        name: ubid
+        in: path
+        required: true
+        description: paupel unique blog id
+    get:
+      summary: Billet de blog
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  billet:
+                    $ref: '#/components/schemas/Blog'
+      operationId: get-blog-ubid
+      security:
+        - paupel-api: []
+      description: retourne un billet de blog
+    put:
+      summary: Met a jour un billet
+      operationId: put-blog-ubid
+      responses:
+        '200':
+          description: OK
+      description: met a jour un billet de blog
+      security:
+        - paupel-admin: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Blog'
+    delete:
+      summary: Supprime un billet
+      operationId: delete-blog-ubid
+      responses:
+        '200':
+          description: OK
+      description: supprime un billet de blog
+      security:
+        - paupel-admin: []
+  /user:
+    post:
+      summary: ''
+      operationId: post-user
+      responses:
+        '200':
+          description: OK
+      description: creer un user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+      security:
+        - paupel-admin: []
+components:
+  schemas:
+    User:
+      title: User
+      type: object
+      description: paupel user model. Can be admin / guest / adherent
+      properties:
+        uuid:
+          type: string
+          description: paupel user id
+        username:
+          type: string
+        picture:
+          type: string
+        balance:
+          type: number
+          description: user paupel balance
+        role:
+          type:
+            - string
+            - 'null'
+    Soiree:
+      title: Soiree
+      type: object
+      properties:
+        soiree_id:
+          type: integer
+        nom_soiree:
+          type: string
+        date:
+          type: string
+        picture:
+          type:
+            - string
+            - 'null'
+        drinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Drink'
+      description: "soiree d'un user, retourne la liste des boisson qu'il a consommé"
+    Drink:
+      title: Drink
+      type: object
+      description: 'une boisson, quand un user'
+      x-examples: {}
+      properties:
+        uiid:
+          type: string
+          description: unique item id
+        date:
+          type: string
+          description: "date de l'achat"
+        price:
+          type: number
+          description: "prix si diff a l'achat (ex soiree trading)"
+        name:
+          type: string
+    Blog:
+      title: Blog
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        picture:
+          type: string
+        date:
+          type: string
+        content:
+          type: string
+      description: un billet de blog
+    Item:
+      title: Item
+      type: object
+      description: "objet que l'on peut acheter (boisson, soiree...)"
+      properties:
+        uiid:
+          type: string
+          description: unique item id
+        name:
+          type: string
+        price:
+          type: number
+        picture:
+          type: string
+  securitySchemes:
+    paupel-api:
+      type: http
+      scheme: bearer
+      description: key return by Paupel auth
+    paupel-admin:
+      type: http
+      scheme: bearer
+      description: paupel admin key retourne quand admin
+security:
+  - API Key - 1: []
+  - paupel-admin: []
